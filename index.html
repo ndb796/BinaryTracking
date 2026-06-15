@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BinTrack — Binary Tracking for Spatial QA and Navigation with Open VLMs</title>
+<meta name="description" content="BinTrack: a fully open-source Spatial Question Answering agent for service robots that binary-searches a robot's trajectory. With GangnamLoop, a multi-trip day/night outdoor benchmark." />
+
+<!-- =====================================================================
+  GitHub Pages homepage for github.com/ndb796/BinaryTracking
+  Place this file at the REPOSITORY ROOT and set Pages source to:
+      Settings → Pages → Branch: main, Folder: / (root)
+  It reuses the same images the README uses (assets/*.png), so figures
+  never break. Only three images are referenced, matching the repo:
+      assets/overview.png  assets/binary_tracking.png  assets/common_map.png
+  Set the "Paper" button href to the arXiv URL once the id is assigned.
+===================================================================== -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --paper:#F4F2EC; --paper2:#FBFAF6; --surface:#FFFFFF;
+    --night-bg:#121A28; --night-bg2:#0D141F; --night-line:#28344A;
+    --ink:#161820; --ink-soft:#3B3F48; --muted:#6B6F77; --faint:#9499A1; --line:#E2DED4;
+    --day:#C0392B; --day-soft:#F7EAE6;
+    --night:#2E63A6; --night-soft:#E7EEF7;
+    --r:13px; --maxw:1060px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Inter",system-ui,sans-serif; font-size:17px; line-height:1.65; -webkit-font-smoothing:antialiased}
+  a{color:var(--night); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 26px}
+  h1,h2,h3{font-family:"Space Grotesk",sans-serif; letter-spacing:-.015em; line-height:1.12; margin:0}
+  .mono{font-family:"JetBrains Mono",monospace}
+  :focus-visible{outline:2px solid var(--night); outline-offset:3px}
+  em{font-style:italic}
+
+  .sec{padding:78px 0; border-bottom:1px solid var(--line)}
+  .sec.dark{background:var(--night-bg); color:#E7ECF3; border-bottom:1px solid #000}
+  .sec.dark h2{color:#fff}
+
+  .kicker{display:flex; align-items:center; gap:11px; font-family:"JetBrains Mono",monospace;
+    font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin:0 0 16px}
+  .kicker::before{content:""; width:6px; height:6px; background:var(--day);
+    box-shadow:10px 0 0 var(--faint), 20px 0 0 var(--faint)}
+  .dark .kicker{color:#8C97A8} .dark .kicker::before{box-shadow:10px 0 0 #4A5468, 20px 0 0 #4A5468}
+  .sec-head{margin:0 0 34px; max-width:780px}
+  .sec-head h2{font-size:clamp(27px,3.6vw,37px); font-weight:700}
+  .sec-head p{color:var(--muted); margin:13px 0 0; font-size:17.5px}
+  .dark .sec-head p{color:#A9B3C2}
+
+  /* -------- hero -------- */
+  .hero{background:var(--night-bg); color:#EEF1F6; border-bottom:1px solid #000; position:relative; overflow:hidden}
+  .hero::before{content:""; position:absolute; inset:0; opacity:.5;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='44'%3E%3Cpath d='M44 0H0V44' fill='none' stroke='%23ffffff' stroke-opacity='0.05' stroke-width='1'/%3E%3C/svg%3E")}
+  .hero .wrap{position:relative; padding:64px 26px 56px}
+  .hero .kicker{color:#8C97A8} .hero .kicker::before{box-shadow:10px 0 0 #4A5468, 20px 0 0 #4A5468}
+  .hero h1{color:#fff; font-size:clamp(31px,4.8vw,52px); font-weight:700; max-width:19ch}
+  .hero .lead{color:#AEB7C5; font-size:clamp(16px,2.1vw,20px); margin:20px 0 0; max-width:60ch; font-weight:400}
+  .authors{margin:26px 0 0; font-size:16.5px; color:#DCE1EA; line-height:1.85}
+  .authors a{color:#fff; text-decoration:underline; text-underline-offset:2px}
+  .authors sup{color:#9BB6E0}
+  .affil{color:#8C97A8; font-size:14.5px; margin-top:6px}
+  .corr{color:#737E90; font-size:13px; margin-top:8px; font-family:"JetBrains Mono",monospace}
+
+  /* compact, horizontal button row (does not stack tall) */
+  .btns{display:flex; flex-flow:row wrap; gap:10px; margin:30px 0 0}
+  .btn{display:inline-flex; align-items:center; gap:8px; padding:10px 17px; border-radius:9px; white-space:nowrap;
+    font-weight:600; font-size:14.5px; font-family:"Space Grotesk",sans-serif; border:1px solid #36404F}
+  .btn svg{width:16px;height:16px; flex:none}
+  .btn-solid{background:#fff; color:#161820; border-color:#fff}
+  .btn-solid:hover{background:#E7E9EC; text-decoration:none}
+  .btn-line{background:#161F2E; color:#EDEFF3}
+  .btn-line:hover{background:#1E293A; text-decoration:none}
+  .btn .soon{font-family:"JetBrains Mono",monospace; font-size:10px; letter-spacing:.06em;
+    color:#94A0B2; border:1px solid #3A4554; border-radius:5px; padding:1px 6px; text-transform:uppercase}
+
+  /* -------- banner figure (overview) -------- */
+  .band{background:var(--night-bg2); border-bottom:1px solid #000; padding:0}
+  .band img{display:block; width:100%; height:auto; max-height:600px; object-fit:cover; object-position:center}
+  .band .cap{max-width:var(--maxw); margin:0 auto; padding:14px 26px 20px; color:#8C97A8; font-size:13.5px;
+    font-family:"JetBrains Mono",monospace}
+  .band .cap b{color:#C6CEDA; font-weight:500}
+
+  /* -------- stat strip -------- */
+  .stats{background:var(--surface); border-bottom:1px solid var(--line)}
+  .stats .wrap{display:grid; grid-template-columns:repeat(6,1fr); gap:0; padding:0}
+  .stat{padding:26px 18px; text-align:center; border-right:1px solid var(--line)}
+  .stat:last-child{border-right:none}
+  .stat .n{font-family:"JetBrains Mono",monospace; font-size:clamp(20px,2.4vw,28px); font-weight:700; color:var(--ink); line-height:1}
+  .stat .l{font-size:12px; color:var(--muted); margin-top:8px; letter-spacing:.02em}
+  .stat .n .u{font-size:14px; color:var(--day); font-weight:500}
+
+  /* -------- figures -------- */
+  figure{margin:0}
+  .fig{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:16px}
+  .fig .tag{font-family:"JetBrains Mono",monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--day); margin:0 2px 11px; display:block}
+  .fig img{width:100%; height:auto; display:block; border-radius:7px}
+  .cap{font-size:14px; color:var(--muted); margin-top:13px; line-height:1.6}
+  .cap b{color:var(--ink); font-family:"Space Grotesk",sans-serif; font-weight:600}
+
+  /* -------- abstract (dark) -------- */
+  .prose p{max-width:80ch; margin:0 0 16px; font-size:18px; color:#CCD3DD}
+  .prose p:last-child{margin-bottom:0}
+  .prose b{font-family:"Space Grotesk",sans-serif; color:#fff; font-weight:600}
+  .prose em{color:#E7ECF3}
+  .prose .mono{color:#9BB6E0}
+
+  /* -------- method cards -------- */
+  .comp{display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-top:30px}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:21px 21px 21px 25px; position:relative}
+  .card::before{content:""; position:absolute; left:0; top:21px; bottom:21px; width:3px; background:var(--day); border-radius:0 3px 3px 0}
+  .card .t{font-family:"Space Grotesk",sans-serif; font-weight:600; font-size:18px; color:var(--ink); margin:0 0 7px}
+  .card .t .num{font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--day); font-weight:700; margin-right:8px}
+  .card p{margin:0; color:var(--muted); font-size:15px; line-height:1.58}
+  .card code{font-family:"JetBrains Mono",monospace; font-size:13px; background:var(--day-soft); color:var(--day); padding:1px 5px; border-radius:4px}
+
+  /* -------- tables -------- */
+  .t-cap{font-family:"Space Grotesk",sans-serif; font-weight:600; font-size:15.5px; color:var(--ink); margin:30px 0 11px}
+  .t-cap .mono{font-size:12.5px; color:var(--muted); font-weight:400}
+  .t-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:var(--r); background:var(--surface)}
+  table{border-collapse:collapse; width:100%; min-width:560px; font-size:15px}
+  thead th{font-family:"JetBrains Mono",monospace; font-size:11px; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--muted); font-weight:400; text-align:center; padding:13px 11px; border-bottom:1px solid var(--line)}
+  thead th:first-child, tbody td:first-child{text-align:left}
+  tbody td{padding:10px 11px; text-align:center; border-bottom:1px solid #F0ECE3; font-variant-numeric:tabular-nums}
+  tbody td:first-child{color:var(--ink)}
+  tbody td .bk{font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--faint)}
+  tbody tr:last-child td{border-bottom:none}
+  tr.ours td{background:var(--day-soft); font-weight:700; color:var(--day)}
+  tr.ours td:first-child{box-shadow:inset 3px 0 0 var(--day)}
+  .t-note{font-size:13.5px; color:var(--muted); margin:11px 2px 0; line-height:1.6}
+  .sched td:first-child{font-family:"JetBrains Mono",monospace}
+  .sched .day{color:var(--day)} .sched .night{color:var(--night)}
+
+  /* -------- segmented-trajectory divider -------- */
+  .divider{position:relative; height:40px; margin:0;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='40'%3E%3Cline x1='0' y1='20' x2='34' y2='20' stroke='%23D9D5CB' stroke-width='1'/%3E%3Crect x='5' y='13' width='24' height='14' rx='2' fill='none' stroke='%23D9D5CB' stroke-width='1'/%3E%3C/svg%3E") repeat-x center}
+  .divider span{position:absolute; top:50%; transform:translate(-50%,-50%); width:13px; height:13px; border-radius:50%;
+    background:var(--paper); box-shadow:0 0 0 4px var(--paper)}
+  .divider .ax{left:16%; background:var(--day)}
+  .divider .ay{left:84%; background:var(--night)}
+  .divider .tg{left:50%; width:18px; height:16px; border-radius:3px; background:var(--ink)}
+
+  /* -------- day/night route cards -------- */
+  .routes{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:6px}
+  .route-card{display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:16px 18px}
+  .route-card .route{font-family:"JetBrains Mono",monospace; font-size:15px; color:var(--ink); font-weight:500}
+  .tags{display:flex; gap:7px}
+  .tag{font-family:"JetBrains Mono",monospace; font-size:11px; padding:3px 9px; border-radius:5px; border:1px solid var(--line)}
+  .tag.d{color:var(--day); border-color:#E3C7C2; background:var(--day-soft)}
+  .tag.n{color:var(--night); border-color:#C3D3EC; background:var(--night-soft)}
+
+  /* -------- coming soon -------- */
+  .soon-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+  .soon{border:1px dashed #D3CDBF; border-radius:var(--r); background:var(--surface);
+    min-height:172px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:22px}
+  .soon .b{font-family:"JetBrains Mono",monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+    color:var(--day); border:1px solid var(--day-soft); background:var(--day-soft); border-radius:5px; padding:4px 9px; margin-bottom:13px}
+  .soon h3{font-size:16px; color:var(--ink); margin:0 0 6px}
+  .soon p{margin:0; color:var(--muted); font-size:14px; max-width:30ch}
+  .soon svg{width:24px;height:24px;color:var(--faint);margin-bottom:9px}
+
+  /* -------- dataset (dark) -------- */
+  .ds{display:grid; grid-template-columns:1fr 1fr; gap:26px; align-items:center}
+  .ds .note{color:#A9B3C2; font-size:15.5px; margin:0 0 16px; max-width:54ch}
+  .ds .note b{color:#fff; font-family:"Space Grotesk",sans-serif}
+  .ds .soon{background:#161F2E; border-color:#2E3A4E}
+  .ds .soon .b{color:#9BB6E0; background:#1E293A; border-color:#2E3A4E}
+  .ds .soon h3{color:#E7ECF3} .ds .soon p{color:#8C97A8} .ds .soon svg{color:#5A6678}
+
+  /* -------- bibtex (dark) -------- */
+  .bib{position:relative; background:var(--night-bg2); border:1px solid var(--night-line); border-radius:var(--r); padding:20px}
+  .bib pre{margin:0; font-family:"JetBrains Mono",monospace; font-size:13.5px; color:#D2D8E1; line-height:1.7; overflow-x:auto}
+  .bib .k{color:#9BB6E0} .bib .f{color:#8C97A8}
+  .copy{position:absolute; top:13px; right:13px; font-family:"JetBrains Mono",monospace; font-size:12px;
+    background:#1E293A; color:#D2D8E1; border:1px solid var(--night-line); border-radius:7px; padding:6px 11px; cursor:pointer}
+  .copy:hover{background:#26344A}
+
+  /* -------- footer -------- */
+  footer{background:var(--night-bg2); color:#8C97A8; padding:34px 0}
+  footer .row{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px}
+  footer a{color:#D2D8E1}
+  footer .links{display:flex; gap:18px; font-size:14px; font-family:"JetBrains Mono",monospace}
+
+  @media (max-width:820px){
+    .stats .wrap{grid-template-columns:repeat(3,1fr)}
+    .stat:nth-child(3){border-right:none}
+    .stat:nth-child(n+4){border-top:1px solid var(--line)}
+  }
+  @media (max-width:760px){
+    body{font-size:16px} .sec{padding:54px 0}
+    .comp,.ds,.routes{grid-template-columns:1fr}
+    .soon-grid{grid-template-columns:1fr}
+    .hero .wrap{padding:50px 22px 46px}
+    .band img{max-height:340px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== HERO ===================== -->
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">Open-source spatial QA · service robots</p>
+    <h1>Binary Tracking for Spatial QA and Navigation with Open Vision-Language Models</h1>
+    <p class="lead">A fully open-source agent that localizes a queried place by binary-searching the robot's own trajectory — running entirely onboard, with no closed-source API.</p>
+
+    <div class="authors">
+      <a href="https://github.com/ndb796">Dongbin Na</a><sup>*†</sup>, Chanwoo Kim<sup>*</sup>, Soonbin Rho, Giyun Choi, Gangbok Lee, Dooyoung Hong<sup>†</sup>
+      <div class="affil">RGA Inc.</div>
+      <div class="corr">* equal contribution &nbsp;·&nbsp; † correspondence to dongbinna@postech.ac.kr and dooyoung@rgarobot.com</div>
+    </div>
+
+    <div class="btns">
+      <!-- Set this href to the arXiv abstract URL once the id is assigned. -->
+      <a class="btn btn-solid" href="https://ndb796.github.io/BinaryTracking/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+        Paper <span class="soon">arXiv soon</span>
+      </a>
+      <a class="btn btn-line" href="https://github.com/ndb796/BinaryTracking">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49v-1.7c-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.1-1.49-1.1-1.49-.9-.63.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.36-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.06.36.32.68.94.68 1.9v2.81c0 .27.18.6.69.49A10.27 10.27 0 0 0 22 12.25C22 6.58 17.52 2 12 2z"/></svg>
+        Code
+      </a>
+      <a class="btn btn-line" href="https://github.com/ndb796/BinaryTracking">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15V6a2 2 0 0 0-2-2H7"/><path d="M3 9v9a2 2 0 0 0 2 2h12"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 13-3.6-3.6L9 18"/></svg>
+        Dataset <span class="soon">soon</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== OVERVIEW BANNER ===================== -->
+<div class="band">
+  <img src="assets/overview.png" alt="BinTrack and GangnamLoop on a representative round-trip route: day and night trajectories on a SLAM map, with memory-construction and query examples." />
+  <div class="cap"><b>System overview.</b> A representative GangnamLoop round trip — day (red) and night (blue) routes on one SLAM map, with offline memory construction and inference-time query examples.</div>
+</div>
+
+<!-- ===================== ABSTRACT (dark) ===================== -->
+<section class="sec dark">
+  <div class="wrap">
+    <p class="kicker">Abstract</p>
+    <div class="prose">
+      <p>Spatial question answering lets a service robot turn a query such as <em>“where can I find a dry cleaner on the way back home?”</em> into a metric coordinate that navigation can act on. Prior approaches rely on retrieval-augmented agents built on closed-source models such as GPT-4o, but robots in the real world often cannot depend on online closed-source models due to network instability, communication latency, and deployment cost.</p>
+      <p>We present <b>BinTrack</b>, a simple yet effective, fully open-source spatial-localization agent that exploits the temporal ordering of a robot's trajectory: it performs a <b>binary search</b> over the segments between two anchor landmarks identified from the query. BinTrack improves overall accuracy by up to <b>22.8%</b> over open-source implementations and matches the reported closed-source result on the global category of SpaceLocQA, while running more than <b>1.5×</b> faster. Every component is open-source, so the full pipeline is reproducible without any API access. We also release <b>GangnamLoop</b>, a multi-trip outdoor benchmark recorded by a quadruped robot on public streets, revisiting the same locations under different conditions and pairing the robot's low viewpoint with the human owner's.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STAT STRIP ===================== -->
+<div class="stats">
+  <div class="wrap">
+    <div class="stat"><div class="n">8</div><div class="l">round-trip recordings</div></div>
+    <div class="stat"><div class="n">360</div><div class="l">spatial queries</div></div>
+    <div class="stat"><div class="n">4</div><div class="l">day / night pairs</div></div>
+    <div class="stat"><div class="n">2</div><div class="l">paired viewpoints</div></div>
+    <div class="stat"><div class="n">221<span class="u"> min</span></div><div class="l">total recording</div></div>
+    <div class="stat"><div class="n">383.8<span class="u">K</span></div><div class="l">RGB frames</div></div>
+  </div>
+</div>
+
+<!-- ===================== METHOD ===================== -->
+<section class="sec">
+  <div class="wrap">
+    <p class="kicker">How it works</p>
+    <div class="sec-head"><h2>One search primitive over the trajectory</h2>
+      <p>BinTrack reads the route as a temporally ordered list of segments and localizes a place through a small set of components built around a single search primitive.</p></div>
+
+    <figure class="fig">
+      <span class="tag">Binary Tracking</span>
+      <img src="assets/binary_tracking.png" alt="Binary Tracking: three steps of binary search over ordered trajectory segments between two anchors, ending in verification of a leaf interval." />
+      <figcaption class="cap"><b>Binary Tracking.</b> Given two anchors <span class="mono" style="font-size:13px">X</span> and <span class="mono" style="font-size:13px">Y</span> from the query, the agent compares the semantic evidence of the left and right halves of the current interval, keeps the stronger half, and repeats until the interval shrinks to a small leaf — where the verifier selects the target segment and returns its coordinate.</figcaption>
+    </figure>
+
+    <div class="comp">
+      <div class="card"><div class="t"><span class="num">01</span>Multi-view memory</div><p>A segment can be captioned three ways — <code>full</code>, <code>center</code>, <code>detail</code> — so retrieval can match the right view of a place.</p></div>
+      <div class="card"><div class="t"><span class="num">02</span>Binary Tracking</div><p>A VL-guided binary search over the segments between <code>X</code> and <code>Y</code>, halving the interval until it brackets the target.</p></div>
+    </div>
+    <p class="t-note" style="margin-top:20px">The planning agent is a text-only 32B model and the verifier is a separate 7B vision-language model; keeping the two roles apart avoids the vote-count hallucination of a single combined model.</p>
+  </div>
+</section>
+
+<!-- ===================== RESULTS ===================== -->
+<section class="sec">
+  <div class="wrap">
+    <p class="kicker">Results</p>
+    <div class="sec-head"><h2>Open-source, competitive with closed-source</h2>
+      <p>Under a fair open-source evaluation, BinTrack beats every open-source baseline across all categories, and ties the closed-source Meta-Memory on the hardest setting.</p></div>
+
+    <div class="t-cap">SpaceLocQA <span class="mono">— success rate (%) @ τ = 15 m, 270 queries</span></div>
+    <div class="t-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Backbone</th><th>Basic</th><th>Local</th><th>Global</th><th>Overall</th></tr></thead>
+        <tbody>
+          <tr><td>Meta-Memory</td><td><span class="bk">closed-source</span></td><td>67.8</td><td>61.8</td><td>62.2</td><td>63.9</td></tr>
+          <tr><td>Meta-Memory</td><td><span class="bk">open-source</span></td><td>50.0</td><td>51.1</td><td>32.6</td><td>44.6</td></tr>
+          <tr><td>ReMEmbR</td><td><span class="bk">closed-source</span></td><td>58.5</td><td>57.8</td><td>46.3</td><td>54.2</td></tr>
+          <tr><td>ReMEmbR</td><td><span class="bk">open-source</span></td><td>56.7</td><td>61.1</td><td>32.6</td><td>50.1</td></tr>
+          <tr class="ours"><td>BinTrack (ours)</td><td>open-source</td><td>74.4</td><td>65.6</td><td>62.2</td><td>67.4</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="t-note">Using only open-source models, BinTrack reaches the closed-source Meta-Memory's <span class="mono">global</span> score (62.2) and the best overall accuracy.</p>
+
+    <div class="t-cap">GangnamLoop <span class="mono">— success rate (%) @ τ = 15 m, 360 queries, 32B agent</span></div>
+    <div class="t-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>R1</th><th>R2</th><th>R3</th><th>R4</th><th>R5</th><th>R6</th><th>R7</th><th>R8</th><th>Overall</th></tr></thead>
+        <tbody>
+          <tr><td>Meta-Memory <span class="bk">(open)</span></td><td>15.6</td><td>31.1</td><td>0.0</td><td>6.7</td><td>20.0</td><td>8.9</td><td>26.7</td><td>15.6</td><td>15.6</td></tr>
+          <tr><td>ReMEmbR <span class="bk">(open)</span></td><td>24.4</td><td>33.3</td><td>4.4</td><td>8.9</td><td>24.4</td><td>11.1</td><td>31.1</td><td>6.7</td><td>18.0</td></tr>
+          <tr class="ours"><td>BinTrack (ours)</td><td>55.6</td><td>60.0</td><td>24.4</td><td>40.0</td><td>60.0</td><td>31.1</td><td>57.8</td><td>33.3</td><td>45.3</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ENVIRONMENT ===================== -->
+<section class="sec">
+  <div class="wrap">
+    <p class="kicker">Environment</p>
+    <div class="sec-head"><h2>Runs onboard, on a single GPU</h2>
+      <p>Every role is filled by an open-source model, so the pipeline needs no external API.</p></div>
+
+    <div class="t-wrap" style="margin-bottom:22px">
+      <table style="min-width:420px">
+        <thead><tr><th>Role</th><th>Model</th></tr></thead>
+        <tbody>
+          <tr><td>Captioner (memory build)</td><td><span class="mono" style="font-size:13.5px">Qwen2.5-VL-7B-Instruct</span></td></tr>
+          <tr><td>Verifier (4-view ensemble)</td><td><span class="mono" style="font-size:13.5px">Qwen2.5-VL-7B-Instruct</span> (shared)</td></tr>
+          <tr><td>Planning agent</td><td><span class="mono" style="font-size:13.5px">Qwen2.5-32B-Instruct-AWQ</span></td></tr>
+          <tr><td>Text encoder</td><td><span class="mono" style="font-size:13.5px">mxbai-embed-large-v1</span></td></tr>
+          <tr><td>Vector database</td><td>Milvus (Lite)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bib" style="background:var(--night-bg2)">
+<pre style="color:#D2D8E1"><span class="f"># Python 3.10 (conda recommended)</span>
+conda create -n vln python=3.10 -y
+conda activate vln
+
+<span class="f"># Pinned versions verified for Qwen2.5-VL</span>
+pip install torch==2.4.1                 <span class="f"># CUDA 12.x build</span>
+pip install transformers==4.49.0         <span class="f"># newer releases break on torch.library.custom_op</span>
+pip install accelerate==1.0.1 "tokenizers>=0.21,<0.22" "setuptools<81"
+pip install pymilvus sentence-transformers qwen-vl-utils autoawq pandas numpy</pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><span class="ax"></span><span class="tg"></span><span class="ay"></span></div>
+
+<!-- ===================== GANGNAMLOOP ===================== -->
+<section class="sec">
+  <div class="wrap">
+    <p class="kicker">Benchmark</p>
+    <div class="sec-head"><h2>GangnamLoop — the same streets, day and night</h2>
+      <p>A quadruped robot walks four out-and-back routes through Gangnam, Seoul, then walks each one again under the opposite lighting. Day (red) and night (blue) trajectories are aligned on a shared SLAM map.</p></div>
+
+    <figure class="fig" style="margin-bottom:26px">
+      <span class="tag">Common SLAM map</span>
+      <img src="assets/common_map.png" alt="All eight GangnamLoop recordings aligned on a common LiDAR-SLAM map." />
+      <figcaption class="cap"><b>One coordinate frame.</b> All eight recordings are registered to a single LiDAR-SLAM map, so revisits of the same place are directly comparable across day, night, and route.</figcaption>
+    </figure>
+
+    <div class="t-wrap" style="margin-bottom:26px">
+      <table style="min-width:520px">
+        <thead><tr><th>Recordings</th><th>Queries</th><th>Day/night pairs</th><th>Viewpoints</th><th>Total recording</th><th>RGB frames</th></tr></thead>
+        <tbody><tr><td style="text-align:center">8</td><td>360</td><td>4</td><td>2 (robot + owner)</td><td>221 min</td><td>383,800</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="routes">
+      <div class="route-card"><span class="route">E → A → E</span><span class="tags"><span class="tag d">R1 day</span><span class="tag n">R8 night</span></span></div>
+      <div class="route-card"><span class="route">E → B → E</span><span class="tags"><span class="tag d">R2 day</span><span class="tag n">R7 night</span></span></div>
+      <div class="route-card"><span class="route">E → C → E</span><span class="tags"><span class="tag n">R3 night</span><span class="tag d">R6 day</span></span></div>
+      <div class="route-card"><span class="route">E → D → E</span><span class="tags"><span class="tag n">R4 night</span><span class="tag d">R5 day</span></span></div>
+    </div>
+
+    <div class="t-cap" style="margin-top:32px">Recording schedule <span class="mono">— 2 days × 4 destinations × day/night</span></div>
+    <div class="t-wrap">
+      <table class="sched">
+        <thead><tr><th>#</th><th>Day</th><th>Condition</th><th>Round trip</th><th>Pair</th><th>Duration</th><th>RGB frames</th><th>Queries</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Day 1</td><td class="day">day</td><td>E → A → E</td><td>#8</td><td>14:43</td><td>25,545</td><td>45</td></tr>
+          <tr><td>2</td><td>Day 1</td><td class="day">day</td><td>E → B → E</td><td>#7</td><td>12:37</td><td>22,020</td><td>45</td></tr>
+          <tr><td>3</td><td>Day 1</td><td class="night">night</td><td>E → C → E</td><td>#6</td><td>32:47</td><td>56,883</td><td>45</td></tr>
+          <tr><td>4</td><td>Day 1</td><td class="night">night</td><td>E → D → E</td><td>#5</td><td>45:12</td><td>78,507</td><td>45</td></tr>
+          <tr><td>5</td><td>Day 2</td><td class="day">day</td><td>E → D → E</td><td>#4</td><td>49:40</td><td>86,208</td><td>45</td></tr>
+          <tr><td>6</td><td>Day 2</td><td class="day">day</td><td>E → C → E</td><td>#3</td><td>35:19</td><td>61,397</td><td>45</td></tr>
+          <tr><td>7</td><td>Day 2</td><td class="night">night</td><td>E → B → E</td><td>#2</td><td>13:41</td><td>23,753</td><td>45</td></tr>
+          <tr><td>8</td><td>Day 2</td><td class="night">night</td><td>E → A → E</td><td>#1</td><td>17:03</td><td>29,487</td><td>45</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="t-note">Recordings <span class="mono">(1,8) (2,7) (3,6) (4,5)</span> share a destination but differ in time of day, forming the day/night cross-domain evaluation set.</p>
+  </div>
+</section>
+
+<!-- ===================== DEPLOYMENT ===================== -->
+<section class="sec">
+  <div class="wrap">
+    <p class="kicker">On the robot</p>
+    <div class="sec-head"><h2>Real-robot deployment</h2>
+      <p>We are bringing BinTrack onboard our service-robot platform. Recorded runs, on-device latency, and a deployment guide will be added here.</p></div>
+    <div class="soon-grid">
+      <div class="soon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="5 3 19 12 5 21 5 3"/></svg><span class="b">Coming soon</span><h3>Onboard run</h3><p>Query to coordinate to navigation, recorded on the robot.</p></div>
+      <div class="soon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg><span class="b">Coming soon</span><h3>On-device latency</h3><p>Per-query timing of retrieval, search, and verification on the robot.</p></div>
+      <div class="soon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19V6a2 2 0 0 1 2-2h9l5 5v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 4v5h5"/></svg><span class="b">Coming soon</span><h3>Deployment guide</h3><p>The steps to run BinTrack onboard a quadruped robot.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== DATASET (dark) ===================== -->
+<section class="sec dark">
+  <div class="wrap">
+    <p class="kicker">Data</p>
+    <div class="sec-head"><h2>The GangnamLoop benchmark</h2></div>
+    <div class="ds">
+      <div>
+        <p class="note">GangnamLoop will be released on <b>Hugging Face</b>. It contains 8 round-trip recordings (360 queries) over four routes, each recorded once during the day and once at night, with paired robot and human viewpoints.</p>
+      </div>
+      <div class="soon" style="min-height:150px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15V6a2 2 0 0 0-2-2H7"/><path d="M3 9v9a2 2 0 0 0 2 2h12"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 13-3.6-3.6L9 18"/></svg>
+        <span class="b">Coming soon</span><h3>Hugging Face release</h3><p>A link will appear here once the dataset is published.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><span class="ax"></span><span class="tg"></span><span class="ay"></span></div>
+
+<!-- ===================== BIBTEX (dark) ===================== -->
+<section class="sec dark">
+  <div class="wrap">
+    <p class="kicker">Cite</p>
+    <div class="sec-head"><h2>BibTeX</h2>
+      <p>If this work is useful for your research, please cite our paper.</p></div>
+    <div class="bib">
+      <button class="copy" id="copyBtn">Copy</button>
+<pre id="bibtex">@article{<span class="k">na2026bintrack</span>,
+  <span class="f">title</span>   = {Binary Tracking for Spatial QA and Navigation with Open Vision-Language Models},
+  <span class="f">author</span>  = {Na, Dongbin and Kim, Chanwoo and Rho, Soonbin and Choi, Giyun and Lee, Gangbok and Hong, Dooyoung},
+  <span class="f">year</span>    = {2026}
+}</pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap row">
+    <div>BinTrack · RGA Inc.</div>
+    <div class="links">
+      <a href="https://github.com/ndb796/BinaryTracking">GitHub</a>
+      <a href="https://github.com/ndb796">@ndb796</a>
+      <a href="#">Top</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var b=document.getElementById('copyBtn'), p=document.getElementById('bibtex');
+    if(b&&p){b.addEventListener('click',function(){
+      navigator.clipboard.writeText(p.innerText).then(function(){
+        var t=b.textContent; b.textContent='Copied'; setTimeout(function(){b.textContent=t;},1500);
+      });
+    });}
+  })();
+</script>
+</body>
+</html>
