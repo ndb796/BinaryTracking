@@ -22,9 +22,13 @@
 >
 > We present **BinTrack**, a simple yet effective, fully open-source spatial-localization agent that exploits the temporal ordering of a robot's trajectory: it performs a **binary search** over the segments between two anchor landmarks identified from the query. BinTrack improves overall accuracy by up to **22.8%** over open-source implementations and matches the reported closed-source result on the global category of SpaceLocQA, while running more than **1.5×** faster. Every component is open-source, so the full pipeline is reproducible without any API access. We also release **GangnamLoop**, a multi-trip outdoor benchmark recorded by a quadruped robot on public streets, revisiting the same locations under different conditions and pairing the robot's low viewpoint with the human owner's.
 
+[![The GangnamLoop map](./assets/overview.png)](./assets/overview.png)
+
 ### How It Works
 
 BinTrack reads the route as a temporally ordered list of segments and localizes a place through various components.
+
+[![The GangnamLoop map](./assets/binary_tracking.png)](./assets/binary_tracking.png)
 
 > **Binary Tracking.** Given two anchors `X` and `Y` from the query, the agent compares the semantic evidence of the left and right halves of the current interval, keeps the stronger half, and repeats until the interval shrinks to a small leaf where the verifier selects the target segment and returns its coordinate.
 
@@ -78,6 +82,8 @@ pip install pymilvus sentence-transformers qwen-vl-utils autoawq pandas numpy
 ```
 
 ### The GangnamLoop Benchmark
+
+[![The GangnamLoop map](./assets/common_map.png)](./assets/common_map.png)
 
 A quadruped robot walks four out-and-back routes through Gangnam, Seoul, then walks each one again under the opposite lighting. Day (red) and night (blue) trajectories are aligned on a shared SLAM map.
 
